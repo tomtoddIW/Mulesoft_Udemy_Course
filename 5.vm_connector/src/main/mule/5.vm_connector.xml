@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+	<flow name="publish_message_async_basic" doc:id="7595aed3-2e89-41df-9d5a-0abd76eb382e" >
+		<http:listener doc:name="HTTP POST" doc:id="13c4897d-5248-4b0e-b44b-49f59945f565" config-ref="HTTP_Listener_config" path="/async-basic"/>
+		<logger level="INFO" doc:name="Log START" doc:id="af6a0e2a-ae61-4da8-acab-c1947604c6a2" message='"before publish to queue"'/>
+		<vm:publish doc:name="Publish to Queue Async" doc:id="3d49bb16-7a7a-4ac2-953d-d41fdd8330cc" config-ref="VM_Config" queueName="queue.persistent"/>
+		<logger level="INFO" doc:name="Log END" doc:id="d8da4778-25ee-42ba-8f6a-013350c1164c" message='"after publish to queue"'/>
+	</flow>
+	<flow name="listener_message_async_basic" doc:id="9eea40e8-0b8d-4334-95ad-bc72e35faeda" >
+		<vm:listener queueName="queue.persistent" doc:name="Queue Basic Listener" doc:id="be3a127f-f635-4fe7-979b-1a9349c2c3a0" config-ref="VM_Config"/>
+		<flow-ref doc:name='Call flow "print payload"' doc:id="224eea11-52e2-4d62-b968-3fc04d53fdad" name="print_payload"/>
+	</flow>
+	<flow name="publish_message_async_dynamic_routing" doc:id="6e6874d3-ce3d-49bc-a687-6139c037a0d0" >
+		<http:listener doc:name="HTTP POST" doc:id="3fa69e2f-61b2-40a4-9461-53bafe031459" config-ref="HTTP_Listener_config" path="/dynamic-routing" allowedMethods="POST"/>
+		<logger level="INFO" doc:name="LOG START" doc:id="b0099f17-0949-43f2-ae18-626a2ae32ed6" message='"before publish to queue"'/>
+		<vm:publish doc:name="Publish to Queue Dynamically" doc:id="950330ce-7a7a-4f66-867c-07c0189df174" config-ref="VM_Config" queueName="#[payload.destination]"/>
+		<logger level="INFO" doc:name="LOG END" doc:id="c6ccc735-9be8-43ea-b594-3d5e558fe51d" message='"after publish to queue"'/>
+	</flow>
+	<flow name="listener_async_dynamic_routing_A" doc:id="8beb9792-ea03-4442-b0e6-6083af836310" >
+		<vm:listener doc:name="Queue A Listener" doc:id="807a624d-e962-4fd1-971f-afe6dafa90fc" config-ref="VM_Config" queueName="queue.A"/>
+		<logger level="INFO" doc:name="Log A" doc:id="77325f8a-95d8-4d0a-ad67-d4a188f9ebc3" message='"this is queue A"'/>
+	</flow>
+	<flow name="listener_async_dynamic_routing_B" doc:id="fa7c93a7-ebbe-4950-a5de-1b322a016905" >
+		<vm:listener doc:name="Queue B Listener" doc:id="f475a5e1-25ae-402b-a501-72a4e2b9bb24" config-ref="VM_Config" queueName="queue.B"/>
+		<logger level="INFO" doc:name="Log B" doc:id="8d74a4a5-3975-4e84-a334-0fd85af098bf" message='"this is queue B"'/>
+	</flow>
+	<flow name="publish_consume_message_sync_basic" doc:id="326b1b52-acb0-4707-acc7-b5d8fe011ab9" >
+		<http:listener doc:name="HTTP POST" doc:id="1f9b25b4-c541-4f6d-a4bb-84abd96dd0f6" config-ref="HTTP_Listener_config" path="/sync-basic"/>
+		<logger level="INFO" doc:name="LOG START" doc:id="553dbe00-cb2e-4908-aab9-66313dceb8a5" message='"before publish to queue"'/>
+		<vm:publish-consume doc:name="Publish to queue and  consume response sync" doc:id="5c934c6f-75fb-42a5-a461-80327f5b5c98" config-ref="VM_Config" queueName="queue.C" target="listenerResponse"/>
+		<logger level="INFO" doc:name="LOG END" doc:id="d228a7ca-dd54-4ea7-83ea-1cc2d1e46a16" message='#[vars.listenerResponse]'/>
+	</flow>
+	<flow name="listener_message_sync_basic" doc:id="5d197c0a-c1a7-4701-bea6-ec86d5ab2cdd" >
+		<vm:listener doc:name="Queue C Listener" doc:id="7df56fe8-49f5-4989-8c79-f2d1c1cba127" config-ref="VM_Config" queueName="queue.C">
+			<vm:response >
+				<vm:content ><![CDATA[#["response from listener"]]]></vm:content>
+			</vm:response>
+		</vm:listener>
+		<flow-ref doc:name='Call flow "print payload"' doc:id="ee9deb8c-b96d-48b4-af84-8d3dbe49361d" name="print_payload"/>
+	</flow>
+	<flow name="print_payload" doc:id="47e3e739-a153-4281-add1-995e9edbd9e7" >
+		<logger level="INFO" doc:name="Logger" doc:id="b385f744-ac97-4a11-9c86-0d834a02c683" message="#[payload]"/>
+	</flow>
+</mule>
